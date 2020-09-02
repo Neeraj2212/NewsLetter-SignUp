@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParesr = require('body-parser');
 const request = require('request');
-
+const dotenv = require('dotenv');
+dotenv.config();
 const app = express();
 
 app.use(express.static('public'));
@@ -15,7 +16,6 @@ app.post('/', function (req, res) {
 	var firstName = req.body.fName;
 	var lastName = req.body.lName;
 	var email = req.body.email;
-	// console.log(firstName, lastName, email);
 
 	var data = {
 		members: [
@@ -33,26 +33,35 @@ app.post('/', function (req, res) {
 	var jsonData = JSON.stringify(data);
 
 	var options = {
-		url: 'https://us17.api.mailchimp.com/3.0/lists/8b911dc47a',
+		url:
+			'https://' +
+			process.env.SERVER +
+			'.api.mailchimp.com/3.0/lists/' +
+			process.env.LIST_ID,
 		method: 'POST',
 		headers: {
-			Authorization: 'neeraj2212 3492b2b58ee31487c79d49d67a8788d1-us17',
+			Authorization: process.env.USER_NAME + ' ' + process.env.API_KEY,
 		},
 		body: jsonData,
 	};
 
 	request(options, function (error, response, body) {
 		if (error) {
-			console.log(error);
+			res.sendFile(__dirname + '/success.html');
 		} else {
-			console.log(response.statusCode);
+			if (response.statusCode === 200) {
+				res.sendFile(__dirname + '/success.html');
+			} else {
+				res.sendFile(__dirname + '/failure.html');
+			}
 		}
 	});
 });
 
-app.listen(3000, function () {
-	console.log('Running on port 3000');
+app.post('/failure.html', function (req, res) {
+	res.redirect('/');
 });
 
-//list id 8b911dc47a
-//api key 3492b2b58ee31487c79d49d67a8788d1-us17
+app.listen(process.env.PORT, function () {
+	console.log('Running on port ' + process.env.PORT);
+});
